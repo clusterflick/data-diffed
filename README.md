@@ -18,7 +18,7 @@ The workflow downloads the two most recent `data-transformed` releases and runs
 the diff command:
 
 ```bash
-npm run diff -- <current-tag> <previous-tag>
+npm run diff -- <current-tag> <previous-tag> <current-published-at>
 ```
 
 This command:
@@ -27,8 +27,8 @@ This command:
   `transformed-data/previous`
 - Compares each venue's showings, matching performances by time so a shifted
   showtime reads as a reschedule rather than a removal plus an addition
-- Ignores performances that have already happened — only what is still to come
-  is a change worth reporting
+- Ignores performances that had already happened when the current release was
+  published — only what was still to come is a change worth reporting
 - Writes `diffed-data/diffed-data.json` describing venues added, removed and
   emptied; showings added, removed and modified; and movie matches gained, lost
   and changed
@@ -47,7 +47,7 @@ A single `diffed-data.json` asset per release:
   "metadata": {
     "currentRelease": "20260726.031204",
     "previousRelease": "20260725.031157",
-    "diffedAt": "2026-07-26T03:20:11.482Z",
+    "asOf": "2026-07-26T03:20:11.482Z",
     "venueCount": 335
   },
   "summary": {
@@ -86,6 +86,11 @@ A single `diffed-data.json` asset per release:
 being compared, and `venueCount` counts the venues compared rather than the
 venues that changed — `summary` describes the whole comparison even though
 `venues` only lists what moved.
+
+`asOf` is when the current release was published, and is what "still to come"
+was measured against. It is deliberately not the time the diff ran: no wall
+clock reaches the output, so re-running a given pair of releases produces a
+byte-identical blob.
 
 Venues are keyed by venue id — the same file name used across the pipeline.
 Times are epoch milliseconds, as everywhere else in the pipeline.
