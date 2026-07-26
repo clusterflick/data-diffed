@@ -38,6 +38,31 @@ The comparison logic lives in the shared
 backs both this workflow and the release comparison report in
 [data-analysed](https://github.com/clusterflick/data-analysed).
 
+## What This Deliberately Does Not Track
+
+The diff compares showings, performance **times**, and movie matches. It does
+not compare the other per-performance fields — `format`, `accessibility`,
+`status.soldOut`, `screen` or `notes`. A release where only those changed
+produces no diff and therefore no release.
+
+**This is a decision, not a gap.** When a screening's `format.source` gains
+`imax-70mm`, the venue has announced nothing and nothing has become available —
+we have simply started parsing a detail we previously missed. Reporting it would
+make the feed a changelog of our own scraper rather than of cinema listings, and
+we cannot distinguish a parser fix from a genuine venue re-announcement, so the
+honest choice is to report neither. Discovery of formats belongs on the
+dedicated format pages, which list them properly and sorted by date.
+
+`status.soldOut` is excluded for a different reason: a feed exists for things a
+reader can act on, and "you can no longer buy this" is not one. The case that
+_does_ matter — a venue adding an extra screening because the first sold out —
+is a new performance time, so it is already reported as an addition.
+
+The one acknowledged edge: more tickets released for an _existing_ sold-out
+performance (same showing, same time, `soldOut` flipping back to false) is
+invisible here. That is genuinely actionable, unlike the rest, but it is rare
+enough to be worth confirming against real data before building for it.
+
 ## Output
 
 A single `diffed-data.json` asset per release:
