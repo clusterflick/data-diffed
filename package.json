@@ -1,0 +1,14 @@
+{
+  "name": "data-diffed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runs scripts to diff transformed data between releases",
+  "scripts": {
+    "diff": "node node_modules/scripts/index.js diff"
+  },
+  "author": "Alistair Brown <github@alistairjcbrown.com>",
+  "license": "MIT",
+  "dependencies": {
+    "scripts": "github:clusterflick/scripts"
+  }
+}

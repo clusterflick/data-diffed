@@ -1,0 +1,105 @@
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [release_event]
+
+name: Diff Data
+
+concurrency:
+  group: diff-data
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  diff_data:
+    name: Diff and Release
+    runs-on: ubuntu-latest
+    # ncipollo/release-action creates a release + tag via GITHUB_TOKEN,
+    # which requires contents: write (top-level default is contents: read).
+    permissions:
+      contents: write
+    env:
+      TZ: Europe/London
+    steps:
+      - uses: clusterflick/.github/setup@main
+
+      - name: Get release tags
+        id: tags
+        run: |
+          CURRENT=$(gh api repos/clusterflick/data-transformed/releases?per_page=10 \
+            --jq 'sort_by(.published_at) | reverse | .[0].tag_name')
+          PREVIOUS=$(gh api repos/clusterflick/data-transformed/releases?per_page=10 \
+            --jq 'sort_by(.published_at) | reverse | .[1].tag_name')
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "previous=$PREVIOUS" >> "$GITHUB_OUTPUT"
+          echo "Current: $CURRENT, Previous: $PREVIOUS"
+
+          # The very first release has nothing to be diffed against
+          if [ -z "$PREVIOUS" ] || [ "$PREVIOUS" = "null" ]; then
+            echo "No previous release to diff against. Skipping."
+            echo "has_previous=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_previous=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
+
+      - name: Download current release
+        if: steps.tags.outputs.has_previous == 'true'
+        uses: clusterflick/release-downloader@v3
+        with:
+          token: ${{ secrets.PAT }}
+          repository: "clusterflick/data-transformed"
+          tag: ${{ steps.tags.outputs.current }}
+          fileName: "*"
+          out-file-path: "transformed-data/current"
+
+      - name: Download previous release
+        if: steps.tags.outputs.has_previous == 'true'
+        uses: clusterflick/release-downloader@v3
+        with:
+          token: ${{ secrets.PAT }}
+          repository: "clusterflick/data-transformed"
+          tag: ${{ steps.tags.outputs.previous }}
+          fileName: "*"
+          out-file-path: "transformed-data/previous"
+
+      - name: Diff Data
+        if: steps.tags.outputs.has_previous == 'true'
+        run: npm run diff -- ${{ steps.tags.outputs.current }} ${{ steps.tags.outputs.previous }}
+
+      # The diff only writes its output when something actually changed, so its
+      # absence is how a no-op run reports itself.
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -f diffed-data/diffed-data.json ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No changes between releases; skipping release."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate Tag
+        if: steps.changes.outputs.has_changes == 'true'
+        run: echo "TAG=$(TZ=Europe/London date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
+      - uses: ncipollo/release-action@v1
+        if: steps.changes.outputs.has_changes == 'true'
+        id: release
+        with:
+          allowUpdates: false
+          artifactErrorsFailBuild: true
+          artifacts: "diffed-data/*"
+          makeLatest: true
+          tag: ${{ env.TAG }}
+          commit: main
+          body: |
+            Changes between data-transformed ${{ steps.tags.outputs.previous }} and ${{ steps.tags.outputs.current }}
+
+            Created by job ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      - name: Output summary
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          echo "🔖 New release - ${{ steps.release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY
