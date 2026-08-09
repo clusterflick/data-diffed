@@ -65,7 +65,10 @@ enough to be worth confirming against real data before building for it.
 
 ## Output
 
-A single `diffed-data.json` asset per release:
+Two assets per release: `diffed-data.json`, the change set described below, and
+`seen-registry.json`, described under [Seen Registry](#seen-registry).
+
+`diffed-data.json`:
 
 ```json
 {
@@ -124,22 +127,73 @@ Each showing entry carries enough to be rendered on its own (`title`, `url`,
 `category`, `seen`, and the matched `themoviedb` / `themoviedbs` id, title and
 release date) without joining against the combined release.
 
+## Seen Registry
+
+`seen-registry.json` exists so that a film whose run has ended keeps its page on
+the website. A movie drops out of the transformed data the moment its last
+performance has been and gone, which used to take its page with it — every link
+to it, indexed or shared, started returning a 404.
+
+```json
+{
+  "metadata": {
+    "release": "20260808.180256",
+    "retentionDays": 365,
+    "showingCount": 1361,
+    "departedCount": 402
+  },
+  "movies": {
+    "550": { "lastSeen": "20260808.180256", "lastPerformance": 1754900000000 }
+  }
+}
+```
+
+It records `lastSeen` for **every** movie, showing or not, rather than only for
+the ones that have gone. That is what keeps it a function of one transformed
+release plus its own previous state: departure is not an event to be spotted by
+comparing two releases, it is simply an entry whose `lastSeen` stopped
+advancing. A movie that returns is stamped again and stops being departed on its
+own, with no removal path to get wrong, and re-running the same release produces
+the same registry.
+
+Consumers should not read departure off `lastSeen`, though — subtract the ids
+they can already see in the live data instead, which stays correct even when a
+run publishes nothing. `lastSeen` is for ageing entries out; `lastPerformance`
+is the last time the film could actually have been watched.
+
+Only root-level `themoviedb` matches are recorded. The `themoviedbs` of a
+multiple-movies event are folded into their parent by the combine stage rather
+than given pages of their own, so treating them as seen would mint pages for
+movies that never had one. Unmatched events are not recorded at all: there is no
+TheMovieDB record to rebuild a page from.
+
+`retentionDays` is a work budget, not a storage one — the file is tens of
+kilobytes either way, but every entry costs a TheMovieDB fetch in the cache
+stage and a static page at build time.
+
 ## Schedule
 
 The workflow is automatically triggered when the
 [data transformation workflow](https://github.com/clusterflick/data-transformed)
 completes successfully, in parallel with
-[data-cached](https://github.com/clusterflick/data-cached) and
 [data-calendar](https://github.com/clusterflick/data-calendar). It can also be
 triggered manually via workflow dispatch — it works out which two releases to
 compare on its own.
 
 **No release is created when nothing changed.** A run that finds no differences
-finishes successfully and leaves the previous release as the latest.
+finishes successfully and leaves the previous release as the latest. The seen
+registry is built either way, but is published only as part of a release: a run
+with nothing to report also has nothing departing, so the previous registry is
+still current and the next run carries forward from it.
 
 ## Downstream Triggers
 
-None. Nothing consumes this data automatically yet.
+- [data-cached](https://github.com/clusterflick/data-cached) - To cache
+  TheMovieDB data for the release, including the departed movies only the seen
+  registry knows about
+
+This fires whether or not a release was created, so an unchanged diff does not
+stall the rest of the pipeline.
 
 ## Maintenance
 
