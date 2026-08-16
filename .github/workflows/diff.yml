@@ -92,6 +92,19 @@ jobs:
           fileName: "seen-registry.json"
           out-file-path: "previous-registry"
 
+      # Downloaded separately from the seen registry: the two have different
+      # retention rules and different consumers, and only this one is safe for a
+      # backfill to rewrite.
+      - name: Download previous venue registry
+        continue-on-error: true
+        uses: clusterflick/release-downloader@v3
+        with:
+          token: ${{ secrets.PAT }}
+          repository: "clusterflick/data-diffed"
+          latest: true
+          fileName: "venue-registry.json"
+          out-file-path: "previous-registry"
+
       - name: Build seen registry
         run: npm run registry -- ${{ steps.tags.outputs.current }}
 
