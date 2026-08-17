@@ -175,10 +175,8 @@ stage and a static page at build time.
 
 The workflow is automatically triggered when the
 [data transformation workflow](https://github.com/clusterflick/data-transformed)
-completes successfully, in parallel with
-[data-calendar](https://github.com/clusterflick/data-calendar). It can also be
-triggered manually via workflow dispatch — it works out which two releases to
-compare on its own.
+completes successfully. It can also be triggered manually via workflow dispatch
+— it works out which two releases to compare on its own.
 
 **No release is created when nothing changed.** A run that finds no differences
 finishes successfully and leaves the previous release as the latest. The seen
