@@ -83,7 +83,6 @@ jobs:
       # the latest release predates the registry - both leave it starting from
       # whatever is showing today, which is correct rather than merely tolerable.
       - name: Download previous seen registry
-        continue-on-error: true
         uses: clusterflick/release-downloader@v3
         with:
           token: ${{ secrets.PAT }}
@@ -96,7 +95,6 @@ jobs:
       # retention rules and different consumers, and only this one is safe for a
       # backfill to rewrite.
       - name: Download previous venue registry
-        continue-on-error: true
         uses: clusterflick/release-downloader@v3
         with:
           token: ${{ secrets.PAT }}
