@@ -1,0 +1,31 @@
+Data licence — data-diffed releases
+===================================
+
+The MIT licence in LICENSE covers the code in this repository. It does not
+cover the data published in this repository's releases, and no licence is
+granted over that data.
+
+diffed-data.json is an internal build artifact. It describes what changed
+between two consecutive data-transformed releases, and exists so the website
+can render its New Listings feed and RSS without recomputing the diff. It is
+published here because the pipeline runs in the open, not as a dataset offered
+for reuse.
+
+It inherits everything the transformed releases carry, including film metadata
+from The Movie Database used under the TMDB API terms of use
+(https://www.themoviedb.org/api-terms-of-use).
+
+Concretely:
+
+  * No licence is granted over these releases. Clusterflick does not hold the
+    rights it would need to grant one.
+  * There are no schema guarantees. The shape, the field names and the file
+    layout change whenever the pipeline needs them to — without notice, without
+    a version bump and without a deprecation period.
+  * There is no warranty and no guarantee of accuracy, availability or
+    continuity. Releases can stop, be deleted or be restructured at any time.
+
+The underlying screening data is licensed; only this derived diff is not.
+For data you can use, see:
+
+    https://clusterflick.com/data-licence

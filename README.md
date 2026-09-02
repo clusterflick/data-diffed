@@ -200,3 +200,17 @@ stall the rest of the pipeline.
 The workflow requires API keys configured as GitHub secrets:
 
 - `PAT` - Personal Access Token for reading `data-transformed` releases
+
+## Licence
+
+The code in this repository is licensed under the [MIT licence](LICENSE).
+
+The releases are **not licensed at all**. `diffed-data.json` is an internal
+build artifact — it exists so the website can render its New Listings feed and
+RSS without recomputing the diff, and it inherits the third-party metadata the
+transformed releases carry. It has no schema guarantees and changes without
+notice.
+
+The underlying screening data _is_ licensed. For data you can use, see the
+[data licence](https://clusterflick.com/data-licence). The exact terms for this
+repository are in [LICENSE-DATA](LICENSE-DATA).

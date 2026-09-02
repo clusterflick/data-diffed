@@ -137,6 +137,8 @@ jobs:
           body: |
             Changes between data-transformed ${{ steps.tags.outputs.previous }} and ${{ steps.tags.outputs.current }}
 
+            ⚠️ **Internal build artifact — not licensed.** This exists so the website can render its New Listings feed and RSS without recomputing the diff, and it inherits the third-party metadata the transformed releases carry. No schema guarantees; changes without notice. For data you can use, see https://clusterflick.com/data-licence
+
             Created by job ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       - name: Output summary
         if: steps.changes.outputs.has_changes == 'true'
