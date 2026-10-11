@@ -58,7 +58,7 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT }}
 
       - name: Download current release
-        uses: clusterflick/release-downloader@v3
+        uses: clusterflick/release-downloader@v4
         with:
           token: ${{ secrets.PAT }}
           repository: "clusterflick/data-transformed"
@@ -67,7 +67,7 @@ jobs:
           out-file-path: "transformed-data/current"
 
       - name: Download previous release
-        uses: clusterflick/release-downloader@v3
+        uses: clusterflick/release-downloader@v4
         with:
           token: ${{ secrets.PAT }}
           repository: "clusterflick/data-transformed"
@@ -83,7 +83,7 @@ jobs:
       # the latest release predates the registry - both leave it starting from
       # whatever is showing today, which is correct rather than merely tolerable.
       - name: Download previous seen registry
-        uses: clusterflick/release-downloader@v3
+        uses: clusterflick/release-downloader@v4
         with:
           token: ${{ secrets.PAT }}
           repository: "clusterflick/data-diffed"
@@ -95,7 +95,7 @@ jobs:
       # retention rules and different consumers, and only this one is safe for a
       # backfill to rewrite.
       - name: Download previous venue registry
-        uses: clusterflick/release-downloader@v3
+        uses: clusterflick/release-downloader@v4
         with:
           token: ${{ secrets.PAT }}
           repository: "clusterflick/data-diffed"
